@@ -33,6 +33,7 @@ flask_app/              # application package
     helper_funcs.py     # helper functions for generating plots, exporting data as csv
     kanban.sqlite3      # sqlite database for the app
     static/             # static files like css, images
+    user_data/          # stores files uploaded by the user (eg. csv files for imports)
     templates/          # contains the html templates
 ```
 
