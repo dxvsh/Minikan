@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+    <style>
+        .boards-container {
+            grid-auto-columns: 350px;
+        }
+        .boards-container__board__cardcontent li{
+            list-style:none;
+            margin: 7px 0;
+        }
+    </style>
+    <title>Quick Stats</title>
+</head>
+<body>
+    <header>
+        <nav id="navbar">
+            <h1><a href="/{{ user['username'] }}/dashboard">Welcome {{ user["username"] }},</a></h1>
+            <h1 style="font-size: 20px;"><a href="/{{ user['username'] }}/create-list">+ Create a New List</a></h1>
+            <ul>
+                <li><a href="/{{ user['username'] }}/stats">Quick Stats</a></li>
+                <li><a href="/{{ user['username'] }}/export">Export as CSV</a></li>
+                <li><a href="/about">Help & About</a></li>
+                <li><a href="/logout">Log Out</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="boards-container">
+        {% for list in user["lists"] %}
+            <div class="boards-container__board">
+                <div class="boards-container__boardhead">
+                    <h1>{{ list["list_title"] }}</h1>
+                </div>
+            
+                <div class="boards-container__board__card">
+                    <div class="boards-container__board__cardhead">
+                        <h1>Stats for: {{ list["list_title"] }}</h1>
+                    </div>
+
+                    <div class="boards-container__board__cardcontent">
+                        <p>
+                            <ul>
+                                {% set total_cards = list["cards"]|length %}
+                                <li><i class="fas fa-stream"></i> Total Cards : {{total_cards}} </li>
+                                <!-- I couldn't get this loop counter to work but a stack overflow answer helped:
+                                https://stackoverflow.com/questions/7537439/how-to-increment-a-variable-on-a-for-loop-in-jinja-template  -->
+                                {% set completed_cards = namespace(value=0) %}
+                                {% set deadlines_missed = namespace(value=0) %}
+                                {% set pending_cards = namespace(value=0) %}
+                                {% for card in list["cards"] %}
+                                    {% if card["status"] == 'Completed' %}
+                                        {% set completed_cards.value = completed_cards.value + 1 %}
+                                    {% elif card["status"] == 'Pending' and current_date > card["deadline"] %}
+                                        {% set deadlines_missed.value = deadlines_missed.value + 1 %}
+                                    {% elif card["status"] == 'Pending' and current_date < card["deadline"] %}
+                                        {% set pending_cards.value = pending_cards.value + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                <li><i class="fas fa-check-circle"></i> Completed Cards : {{ completed_cards.value }}</li>
+                                <li><i class="fas fa-clock"></i> Pending Cards : {{ pending_cards.value }} </li>
+                                <li><i class="fas fa-exclamation-triangle"></i> Deadlines Missed : {{ deadlines_missed.value }}</li>
+                                <!-- Now call the make_plot function to generate a chart for this list -->
+                                {{ make_plot(list["list_id"]) }} 
+                                <img src="../static/images/list_{{ list['list_id'] }}.jpeg" alt="" width="310px">
+                            </ul>
+                        </p>
+                    </div>
+
+                    <div class="boards-container__board__cardfoot">
+                        {% if total_cards != 0 %}
+                            <!-- Percentage of task completed: (completed_cards/total_num_of_cards)*100 -->
+                            <p><i class="fas fa-chart-line"></i>Completion: {{ ((completed_cards.value/total_cards)*100)|round(2) }}%</p>
+                        {% else %}
+                            <p><i class="fas fa-chart-line"></i>Completion: Empty List</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+      </div>
+
+</body>
+</html>

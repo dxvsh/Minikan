@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <nav id="navbar">
+            <h1><a href="/{{ user['username'] }}/dashboard">Welcome {{ user["username"] }},</a></h1>
+            <h1 style="font-size: 20px;"><a href="/{{ user['username'] }}/create-list">+ Create a New List</a></h1>
+            <ul>
+                <li><a href="/{{ user['username'] }}/stats">Quick Stats</a></li>
+                <li><a href="/{{ user['username'] }}/import">Import CSV</a></li>
+                <li><a href="/{{ user['username'] }}/export">Export as CSV</a></li>
+                <li><a href="/about">Help & About</a></li>
+                <li><a href="/logout">Log Out</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    {% if user["lists"]|length == 0 %}
+    <div class="img-section">
+        <img src="../static/images/kan_dashboard.jpg" alt="">
+        <p>You don't have any lists {{ user["username"] }}. Create a new one!</p>
+        <a href="/{{ user['username'] }}/create-list" class="btn">Create a List!</a>
+    </div>
+    {% else %}
+
+  <div class="boards-container">
+    {% for list in user["lists"] %}
+        <div class="boards-container__board">
+            <div class="boards-container__boardhead">
+                <h1>{{ list["list_title"] }}</h1>
+                <ul>
+                    <li><a href="/{{ user['username'] }}/edit-list/{{ list['list_id'] }}" title="edit list"><i class="fas fa-edit"></i></a></li>
+                    <li><a href="/{{ user['username'] }}/delete-list/{{ list['list_id'] }}" title="delete list"><i class="far fa-trash-alt"></i></a></li>
+                </ul>
+            </div>
+        
+        {% for card in list["cards"] %}
+            <div class="boards-container__board__card">
+                <div class="boards-container__board__cardhead">
+                    <h1>{{ card["card_title"] }}</h1>
+                    <ul>
+                        <li><a href="/{{ user['username'] }}/edit-card/{{ card['card_id'] }}" title="edit card"><i class="fas fa-edit"></i></a></li>
+                        <li><a href="/{{ user['username'] }}/delete-card/{{ card['card_id'] }}" title="delete card"><i class="far fa-trash-alt"></i></a></li>
+                    </ul>
+                </div>
+                {% if card["status"] == 'Pending' %}
+                    <div class="boards-container__board__cardcontent">
+                        <p>
+                            {{ card["card_content"] }}
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="boards-container__board__cardcontent completed">
+                        <p>
+                            {{ card["card_content"] }}
+                        </p>
+                    </div>
+                {% endif %}
+                <div class="boards-container__board__cardfoot">
+                    {% if card["status"] == 'Pending' %}
+                        <p>Due on : <i class="fas fa-calendar-week"></i>{{ card["deadline"] }}</p>
+                    {% else %}
+                        <p>Task Completed</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+
+            <div class="add-card-link">
+                <a href="/{{user['username']}}/create-card/inside-list/{{ list['list_id'] }}">+ Add new card</a>
+            </div>
+        </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</body>
+</html>
